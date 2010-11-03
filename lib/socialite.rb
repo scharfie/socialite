@@ -1,8 +1,9 @@
 module Socialite
-
   def socialite(options)
-    url   = options[:url]
-    title = options[:title]
+    size     = options[:size]
+    url      = options[:url]
+    title    = options[:title]
+    networks = options[:networks] || :all
 
     unless url.present? && title.present?
       RAILS_DEFAULT_LOGGER.warn "Socialite requires a URL and title!"
@@ -16,24 +17,15 @@ module Socialite
         :technorati  => "http://www.technorati.com/faves?add=#{url}&title=#{title}",
         :twitter     => "http://www.twitter.com/?status=#{title}: #{url}",
         :email       => "mailto:?subject=#{title}&body=#{title}: #{url}"
-      }.map do |(site, submit_url)|
-        "<a href='#{submit_url}'><img src='/images/socialite/#{site}_16.png'></a>"
+      }.with_indifferent_access
+      
+      networks = links.keys if links == :all
+      
+      networks.map do |network|
+        submit_url = links[network]
+        basename   = [network, size].select(&:present?).join('_')
+        "<a href='#{submit_url}'><img src='/images/socialite/#{basename}.png' alt='#{network}'></a>"
       end
-
-      <<-END
-        <div id="socialite">
-          <span class="advert">
-            <a href="http://github.com/mdarby/socialite">
-              Socialite
-            </a>
-          </span>
-
-          <div id="links">
-            #{links}
-          </div>
-        </div>
-      END
     end
-
   end
 end
